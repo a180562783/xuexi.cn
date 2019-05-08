@@ -18,6 +18,7 @@ WEBSITE = {
     },
     "xpath": {
         "login": {
+            "login_text": '//*[@class="ddlogintext"]',
             "success": '//*[@id="app"]/div/div[2]/div/div/div[1]/div/a[3]/div/div[2]/div[1]/span',
         },
         "points": {

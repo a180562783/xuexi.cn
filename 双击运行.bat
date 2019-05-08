@@ -1,3 +1,4 @@
 echo off
-echo 开始运行脚本
+echo ��ʼ���нű�
 python main.py
+pause

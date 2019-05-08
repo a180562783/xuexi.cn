@@ -1,7 +1,5 @@
 #!/usr/bin/env python 
 # -*- coding:utf-8 -*-
-import os
-import sys
 import time
 import logging
 import random
@@ -10,6 +8,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from config import *
+
+VIDEO_HISTORY = set()
+ARTICLE_HISTORY = set()
 
 
 class Browser:
@@ -33,14 +34,24 @@ class Browser:
         # 实例化浏览器
         driver = webdriver.Chrome(executable_path=chrome_driver, chrome_options=chrome_options)
         driver.maximize_window()
-
+        # 加载登录页面
         driver.get(self.website["url"]["login"])
+        # 移动页面到最下方，显示二维码
+        try:
+            locator = (By.XPATH, self.xpath["login"]["login_text"])
+            WebDriverWait(driver, 30, 0.5).until(EC.presence_of_element_located(locator))
+            js = "var q=document.documentElement.scrollTop=" + str(3000)
+            driver.execute_script(js)
+        except Exception as e:
+            raise e
+
+        # 等待用户扫码登录
         print("{0}\n请使用软件扫码登录。\n{0}".format(self.sep))
         while True:
             try:
                 text = driver.find_element_by_xpath(self.xpath["login"]["success"]).text
+                # 扫码登陆成功
                 if "学习积分" in text:
-                    print("登录成功")
                     break
             except:
                 time.sleep(1)
@@ -51,16 +62,29 @@ class Browser:
         self.driver.refresh()
         time.sleep(sleep_time)
 
+    def wait(self, key1, key2, wait_time=15):
+        try:
+            locator = (By.XPATH, self.xpath[key1][key2])
+            WebDriverWait(self.driver, wait_time, 0.5).until(EC.presence_of_element_located(locator))
+        except Exception as e:
+            raise e
+
     def click(self, key1, key2, value=None):
         try:
             locator = (By.XPATH, self.xpath[key1][key2].format(value))
             WebDriverWait(self.driver, 15, 0.5).until(EC.presence_of_element_located(locator)).click()
+            self.cur_page()
         except Exception as e:
             raise e
 
-    def get_page(self, page_name, sleep_time=2):
+    def page_down(self, lenth=1000):
+        js = "var q=document.documentElement.scrollTop=" + str(lenth)
+        self.driver.execute_script(js)
+
+    def get_page(self, page_name, sleep_time=2, distance=0):
         self.driver.get(self.website["url"][page_name])
         time.sleep(sleep_time)
+        self.page_down(distance)
 
     def get_text(self, key1, key2, index=-1, wait_time=15):
         if not wait_time:
@@ -81,16 +105,12 @@ class Browser:
         self.driver.switch_to.window(windows[-1])
 
     def back(self):
-        # 关闭新打开的页面
-        windows = self.driver.window_handles
-        self.driver.switch_to.window(windows[-1])
+        self.cur_page()
         self.driver.close()
-        # 切换回上个窗口
-        windows = self.driver.window_handles
-        self.driver.switch_to.window(windows[-1])
+        self.cur_page()
 
 
-def get_points_state(browser):
+def get_my_points(browser):
     browser.get_page("my_points")
     print("今日积分获取情况")
     read_point = browser.get_text("points", "read_points")
@@ -105,78 +125,83 @@ def get_points_state(browser):
 
 
 def read_one_article(browser, num):
-    try:
-        browser.click("read", "news", str(num))
-    except Exception as e:
-        print("点击第{}篇文章失败\n原因：{}".format(num, e))
-        return False
-    print("阅读第{}篇文章中...等待两分钟。".format(num))
-    time.sleep(browser.config["read_time"])
+    print("阅读列表第{}篇文章...耗时两分钟。".format(num))
+    browser.get_page("main")
+    # 点击一篇文章
+    browser.click("read", "news", str(num))
+
+    # 有效阅读：页面滚动
+    length = random.randint(500, 1000)
+    for i in range(1, 11):
+        browser.page_down(length * i)
+        time.sleep(browser.config["read_time"] // 10)
+
     browser.back()
     return True
 
 
-def read_article(browser, num):
-    need_read_num = num
+def read_article(browser, need_read_num):
     print("开始阅读文章，总共需要阅读{}篇".format(need_read_num))
-    # 随机选取文章
-    random_set = get_random_set(1, 8, need_read_num)
-    print("read random:{}".format(random_set))
     while need_read_num:
-        print("尚需阅读{}篇文章".format(need_read_num))
-        browser.get_page("main")
-        read_one_article(browser, random_set.pop())
+        print("尚需阅读{0}篇文章".format(need_read_num))
+        # 获取一篇未读过的文章
+        cur_article = get_random_num(1, 8, ARTICLE_HISTORY)
+        ARTICLE_HISTORY.add(cur_article)
+        # 阅读一篇文章
+        read_one_article(browser, cur_article)
         need_read_num -= 1
 
     print("阅读文章结束\n{}".format(browser.sep))
     return True
 
 
-def get_random_set(start, end, num):
-    random_set = set()
-    while len(random_set) != num:
-        random_set.add(random.randint(start, end))
+def get_random_num(start, end, history):
+    if len(history) == int(end - start + 1):
+        print("history 已满。")
+        history.clear()
+    num = random.randint(start, end)
+    while num in history:
+        num = random.randint(start, end)
 
-    return random_set
+    return num
 
 
 def watch_video(browser, num):
     need_watch_num = num
     print("开始观看视频，共需观看{}部".format(need_watch_num))
-    browser.get_page("main", 10)
+    # 进入实播平台
+    browser.get_page("main", 5, 2500)
     browser.click("video", "shibo")
-    browser.cur_page()
 
-    # 随机选取
-    random_set = get_random_set(3, 20, need_watch_num)
-    print("video random:{}".format(random_set))
     while need_watch_num:
-        print("尚需观看视频{}部，每部观看三分钟...".format(need_watch_num))
-        browser.click("video", "shibo_video", value=random_set.pop())
-        # time.sleep(5)
-        time.sleep(browser.config["video_time"])
+        # 获取未观看过的视频序号
+        cur_video = get_random_num(3, 20, VIDEO_HISTORY)
+        VIDEO_HISTORY.add(cur_video)
+        print("尚需观看视频{0}部，随机数{1}".format(need_watch_num, cur_video))
+        browser.click("video", "shibo_video", value=cur_video)
+        for i in range(1, 11):
+            browser.page_down(random.randint(200, 500))
+            time.sleep(browser.config["video_time"] // 10)
         browser.back()
         need_watch_num -= 1
-
-    # time.sleep(200)
 
     return True
 
 
 def auto_get_points(browser):
     # 获取当前积分情况
-    points_state = get_points_state(browser)
+    my_points = get_my_points(browser)
 
-    while points_state["read_point"] != points_state["read_point_all"] or \
-            points_state["video_point"] != points_state["video_point_all"]:
-        # 读文章 2分钟1篇
-        read_article(browser, points_state["read_point_all"] - points_state["read_point"])
-        points_state = get_points_state(browser)
-        # 看视频 3分钟1部
-        watch_video(browser, points_state["video_point_all"] - points_state["video_point"])
-        points_state = get_points_state(browser)
+    # 读文章 2分钟1篇
+    while my_points["read_point"] != my_points["read_point_all"]:
+        read_article(browser, my_points["read_point_all"] - my_points["read_point"])
+        my_points = get_my_points(browser)
 
-    # 任务结束
+    # 看视频 3分钟1部
+    while my_points["video_point"] != my_points["video_point_all"]:
+        watch_video(browser, my_points["video_point_all"] - my_points["video_point"])
+        my_points = get_my_points(browser)
+
     return True
 
 
@@ -186,5 +211,3 @@ if __name__ == '__main__':
     browser = Browser(USER_CONFIG, WEBSITE)
     # 自动获取积分
     auto_get_points(browser)
-    # 任务结束
-    del browser

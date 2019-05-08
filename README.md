@@ -17,13 +17,16 @@
 ## 配置工作
 
 1. 安装第三方库selenium
-2. 将chromedriver目录下的chromedriver.exe文件配置到系统路径，如我的路径是：D:\\xuexi.cn\chromedriver\chromedriver.exe
+
+2. 将chromedriver目录下的chromedriver.exe文件配置到系统路径
+
+   ```
+   # 我的电脑 -> 属性 -> 高级系统设置 -> 环境变量 -> 系统变量
+   # 在系统变量中的path中添加
+   # 如我的路径是：D:\xuexi.cn\chromedriver\chromedriver.exe
+   ```
 
 ## 使用说明
 
-双击执行.bat文件即可
-
-
-
-
+**双击执行.bat文件即可**
 

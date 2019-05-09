@@ -33,7 +33,7 @@
    USER_CONFIG = {
    	"chrome_driver": "xxx",
    	# 如我的地址是
-       # "chrome_driver": r"D:\xuexi.cn\chromedriver\chromedriver.exe",
+   	# "chrome_driver": r"D:\xuexi.cn\chromedriver\chromedriver.exe",
    }
    ```
 

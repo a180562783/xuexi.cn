@@ -26,6 +26,17 @@
    # 如我的路径是：D:\xuexi.cn\chromedriver\chromedriver.exe
    ```
 
+3. 将chromedriver.exe的路径配置到config.py中
+
+   ```
+   # 用户配置：chromedriver.exe文件地址
+   USER_CONFIG = {
+   	"chrome_driver": "xxx",
+   	# 如我的地址是
+       # "chrome_driver": r"D:\xuexi.cn\chromedriver\chromedriver.exe",
+   }
+   ```
+
 ## 使用说明
 
 **双击执行.bat文件即可**

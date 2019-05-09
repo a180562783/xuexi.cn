@@ -1,5 +1,7 @@
 #!/usr/bin/env python 
 # -*- coding:utf-8 -*-
+import os
+import sys
 import time
 import logging
 import random
@@ -25,12 +27,20 @@ class Browser:
         self.driver.quit()
 
     def _login(self):
+        # chrome配置
         chrome_options = webdriver.ChromeOptions()
         if self.config["chrome_mute"]:
             chrome_options.add_argument('--mute-audio')  # 关闭声音
         if self.config["hide_page"]:
             chrome_options.add_argument("--headless")  # 隐藏页面
+
         chrome_driver = self.config["chrome_driver"]  # chromedriver的路径
+        # 确保chromedriver.exe文件存在
+        if not os.path.exists(chrome_driver):
+            print("任务失败！")
+            print("请按README.md说明文档配置chromedriver.exe文件地址到系统路径，并在config.py文件中补充。")
+            time.sleep(120)
+            sys.exit(-1)
         # 实例化浏览器
         driver = webdriver.Chrome(executable_path=chrome_driver, chrome_options=chrome_options)
         driver.maximize_window()
@@ -69,13 +79,22 @@ class Browser:
         except Exception as e:
             raise e
 
-    def click(self, key1, key2, value=None):
-        try:
-            locator = (By.XPATH, self.xpath[key1][key2].format(value))
-            WebDriverWait(self.driver, 15, 0.5).until(EC.presence_of_element_located(locator)).click()
-            self.cur_page()
-        except Exception as e:
-            raise e
+    def click(self, key1, key2, index=-1, value=None):
+        if index < 0:
+            try:
+                locator = (By.XPATH, self.xpath[key1][key2].format(value))
+                WebDriverWait(self.driver, 15, 0.5).until(EC.presence_of_element_located(locator)).click()
+                self.cur_page()
+            except Exception as e:
+                raise e
+        else:
+            try:
+                locator = (By.XPATH, self.xpath[key1][key2].format(value))
+                WebDriverWait(self.driver, 15, 0.5).until(EC.presence_of_element_located(locator))
+                self.driver.find_elements_by_xpath(self.xpath[key1][key2])[index].click()
+                self.cur_page()
+            except Exception as e:
+                raise e
 
     def page_down(self, lenth=1000):
         js = "var q=document.documentElement.scrollTop=" + str(lenth)
@@ -128,13 +147,15 @@ def read_one_article(browser, num):
     print("阅读列表第{}篇文章...耗时两分钟。".format(num))
     browser.get_page("main")
     # 点击一篇文章
-    browser.click("read", "news", str(num))
+    # browser.click("read", "news", value=str(num))
+    browser.click("read", "shiping", value=str(num))
 
     # 有效阅读：页面滚动
-    length = random.randint(500, 1000)
+    length = random.randint(100, 300)
     for i in range(1, 11):
-        browser.page_down(length * i)
+        browser.page_down(length)
         time.sleep(browser.config["read_time"] // 10)
+        length += random.randint(100, 300)
 
     browser.back()
     return True
@@ -147,6 +168,7 @@ def read_article(browser, need_read_num):
         # 获取一篇未读过的文章
         cur_article = get_random_num(1, 8, ARTICLE_HISTORY)
         ARTICLE_HISTORY.add(cur_article)
+        print("阅读历史：{}".format(ARTICLE_HISTORY))
         # 阅读一篇文章
         read_one_article(browser, cur_article)
         need_read_num -= 1
@@ -169,16 +191,22 @@ def get_random_num(start, end, history):
 def watch_video(browser, num):
     need_watch_num = num
     print("开始观看视频，共需观看{}部".format(need_watch_num))
-    # 进入实播平台
-    browser.get_page("main", 5, 2500)
-    browser.click("video", "shibo")
+
+    browser.get_page("main", 5)
+    # # 进入实播平台
+    # browser.click("video", "shibo")
+    # 学习电视台
+    browser.click("video", "tv")
+    browser.click("video", "videos")
 
     while need_watch_num:
         # 获取未观看过的视频序号
-        cur_video = get_random_num(3, 20, VIDEO_HISTORY)
+        cur_video = get_random_num(0, 23, VIDEO_HISTORY)
         VIDEO_HISTORY.add(cur_video)
+        print("视频历史：{}".format(VIDEO_HISTORY))
         print("尚需观看视频{0}部，随机数{1}".format(need_watch_num, cur_video))
-        browser.click("video", "shibo_video", value=cur_video)
+        # todo 随机翻页
+        browser.click("video", "one_video", index=cur_video, value=cur_video)
         for i in range(1, 11):
             browser.page_down(random.randint(200, 500))
             time.sleep(browser.config["video_time"] // 10)
@@ -206,7 +234,7 @@ def auto_get_points(browser):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.CRITICAL)
     # 登录
     browser = Browser(USER_CONFIG, WEBSITE)
     # 自动获取积分

@@ -100,6 +100,19 @@ class Browser:
         js = "var q=document.documentElement.scrollTop=" + str(lenth)
         self.driver.execute_script(js)
 
+    def page_scroll(self, downward, all_time):
+        # 页面滚动即是有效阅读
+        if downward:
+            length = random.randint(100, 300)
+            for i in range(1, 11):
+                self.page_down(length)
+                time.sleep(all_time // 10)
+                length += random.randint(100, 300)
+        else:
+            for i in range(1, 11):
+                self.page_down(random.randint(200, 500))
+                time.sleep(all_time // 10)
+
     def get_page(self, page_name, sleep_time=2, distance=0):
         self.driver.get(self.website["url"][page_name])
         time.sleep(sleep_time)
@@ -129,6 +142,16 @@ class Browser:
         self.cur_page()
 
 
+def get_random_num(start, end, history):
+    if len(history) == int(end - start + 1):
+        print("history 已满。")
+        history.clear()
+    num = random.randint(start, end)
+    while num in history:
+        num = random.randint(start, end)
+    return num
+
+
 def get_my_points(browser):
     browser.get_page("my_points")
     print("今日积分获取情况")
@@ -143,76 +166,56 @@ def get_my_points(browser):
     }
 
 
-def read_one_article(browser, num):
-    print("阅读列表第{}篇文章...耗时两分钟。".format(num))
-    browser.get_page("main")
-    # 点击一篇文章
-    # browser.click("read", "news", value=str(num))
-    browser.click("read", "shiping", value=str(num))
-
-    # 有效阅读：页面滚动
-    length = random.randint(100, 300)
-    for i in range(1, 11):
-        browser.page_down(length)
-        time.sleep(browser.config["read_time"] // 10)
-        length += random.randint(100, 300)
-
+def read_one_article(browser):
+    # 获取一篇未读过的文章
+    random_num = get_random_num(1, 20, ARTICLE_HISTORY)
+    ARTICLE_HISTORY.add(random_num)
+    print("阅读历史：{}".format(ARTICLE_HISTORY))
+    # 读文章
+    browser.click("read", "comment", value=str(random_num))
+    browser.page_scroll(downward=True, all_time=browser.config["read_time"])
     browser.back()
     return True
 
 
 def read_article(browser, need_read_num):
     print("开始阅读文章，总共需要阅读{}篇".format(need_read_num))
+    # 进入学习时评
+    browser.get_page("main", sleep_time=5, distance=1500)
+    browser.click("read", "shiping_title")
     while need_read_num:
         print("尚需阅读{0}篇文章".format(need_read_num))
-        # 获取一篇未读过的文章
-        cur_article = get_random_num(1, 8, ARTICLE_HISTORY)
-        ARTICLE_HISTORY.add(cur_article)
-        print("阅读历史：{}".format(ARTICLE_HISTORY))
-        # 阅读一篇文章
-        read_one_article(browser, cur_article)
+        read_one_article(browser)
         need_read_num -= 1
-
+    browser.back()
     print("阅读文章结束\n{}".format(browser.sep))
     return True
 
 
-def get_random_num(start, end, history):
-    if len(history) == int(end - start + 1):
-        print("history 已满。")
-        history.clear()
-    num = random.randint(start, end)
-    while num in history:
-        num = random.randint(start, end)
+def watch_one_video(browser):
+    # 获取未观看过的视频
+    random_num = get_random_num(0, 23, VIDEO_HISTORY)
+    VIDEO_HISTORY.add(random_num)
+    print("视频历史：{}".format(VIDEO_HISTORY))
+    # 看视频
+    browser.click("video", "one_video", index=random_num)
+    browser.page_scroll(downward=False, all_time=browser.config["video_time"])
+    browser.back()
+    return True
 
-    return num
 
-
-def watch_video(browser, num):
-    need_watch_num = num
+def watch_video(browser, need_watch_num):
     print("开始观看视频，共需观看{}部".format(need_watch_num))
-
+    # 进入学习电视台
     browser.get_page("main", 5)
-    # # 进入实播平台
-    # browser.click("video", "shibo")
-    # 学习电视台
     browser.click("video", "tv")
     browser.click("video", "videos")
-
     while need_watch_num:
-        # 获取未观看过的视频序号
-        cur_video = get_random_num(0, 23, VIDEO_HISTORY)
-        VIDEO_HISTORY.add(cur_video)
-        print("视频历史：{}".format(VIDEO_HISTORY))
-        print("尚需观看视频{0}部，随机数{1}".format(need_watch_num, cur_video))
-        # todo 随机翻页
-        browser.click("video", "one_video", index=cur_video, value=cur_video)
-        for i in range(1, 11):
-            browser.page_down(random.randint(200, 500))
-            time.sleep(browser.config["video_time"] // 10)
-        browser.back()
+        print("尚需观看视频{0}部".format(need_watch_num))
+        watch_one_video(browser)
         need_watch_num -= 1
-
+    browser.back()
+    print("观看视频结束\n{}".format(browser.sep))
     return True
 
 

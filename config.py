@@ -29,17 +29,13 @@ WEBSITE = {
             "video_points": '//*[@id="app"]/div/div[2]/div/div[3]/div[2]/div[3]/div[2]/div[1]/div[2]',
         },
         "read": {
-            "news": '//*[@data-data-id="grid-business-title"]/div/div/div/div/section/div/div/div/div/section/div/div/div/div[2]/section/div/div/div[1]/div[{}]/div/div/div/span',
-            "shiping": '//*[@data-data-id="shiping-text-list-grid"]/div/div/div/div[{}]/div/div/div/span',
+            "shiping_title": '//*[@data-data-id="shiping-title"]/div/div[2]/span',
+            "comment": '//*[@data-data-id="textListGrid"]/div/div/div/div[{}]/div/div/div/span',
         },
         "video": {
-            # "enter": '//*[@data-data-id="most-beautiful-chinese-title"]/div/div[1]/span',
-            "shibo": '//*[@data-data-id="shibo-platform-title"]/div/div[1]/span',
-            "shibo_video": '//*[@class="screen"]/div/div[2]/div/div[3]/div/div[{}]/div',
             "tv": '//*[@id="root"]/div/header/div[2]/div[1]/div[2]/a[2]',
             "videos": '//*[@id="dcd4"]/div/div/div/div/div/section/div[2]',
             "one_video": '//*[@class="Pic"]',
-            # "video": '//*[@class="div-background-img-stretching"]/div[2]/div[2]/div/div[{}]/div',
         }
     },
 }

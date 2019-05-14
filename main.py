@@ -62,6 +62,8 @@ class Browser:
                 text = driver.find_element_by_xpath(self.xpath["login"]["success"]).text
                 # 扫码登陆成功
                 if "学习积分" in text:
+                    if self.config["hide_page"]:
+                        driver.minimize_window()
                     break
             except:
                 time.sleep(1)
@@ -79,8 +81,8 @@ class Browser:
         except Exception as e:
             raise e
 
-    def click(self, key1, key2, index=-1, value=None):
-        if index < 0:
+    def click(self, key1, key2, index=-100, value=None):
+        if index < -99:
             try:
                 locator = (By.XPATH, self.xpath[key1][key2].format(value))
                 WebDriverWait(self.driver, 15, 0.5).until(EC.presence_of_element_located(locator)).click()
@@ -135,6 +137,8 @@ class Browser:
     def cur_page(self):
         windows = self.driver.window_handles
         self.driver.switch_to.window(windows[-1])
+        if self.config["hide_page"]:
+            self.driver.minimize_window()
 
     def back(self):
         self.cur_page()
@@ -210,6 +214,14 @@ def watch_video(browser, need_watch_num):
     browser.get_page("main", 5)
     browser.click("video", "tv")
     browser.click("video", "videos")
+    # 随机翻几页
+    page = random.randint(1, 11)
+    while True:
+        if browser.get_text("video", "active_btn") == str(page):
+            break
+        else:
+            browser.click("video", "next_btn", index=-2)
+            time.sleep(1)
     while need_watch_num:
         print("尚需观看视频{0}部".format(need_watch_num))
         watch_one_video(browser)

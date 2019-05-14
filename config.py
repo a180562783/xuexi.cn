@@ -33,6 +33,8 @@ WEBSITE = {
             "comment": '//*[@data-data-id="textListGrid"]/div/div/div/div[{}]/div/div/div/span',
         },
         "video": {
+            "active_btn": '//*[@class="btn active"]',
+            "next_btn": '//*[@class="btn"]',
             "tv": '//*[@id="root"]/div/header/div[2]/div[1]/div[2]/a[2]',
             "videos": '//*[@id="dcd4"]/div/div/div/div/div/section/div[2]',
             "one_video": '//*[@class="Pic"]',

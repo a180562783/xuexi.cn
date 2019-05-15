@@ -8,7 +8,7 @@ USER_CONFIG = {
     # "chrome_driver": r"C:\Users\69540\PycharmProjects\xuexi.cn\chromedriver\chromedriver.exe",
     # 下列可选
     "chrome_mute": True,  # 浏览器静音
-    "hide_page": False,  # 浏览器隐藏
+    "hide_page": False,  # 浏览器隐藏，浏览器如果隐藏则不算有效阅读
     "read_time": 130,  # 一篇文章的阅读时间
     "video_time": 190,  # 一部视频的观看时间
 }

@@ -198,7 +198,7 @@ def read_article(browser, need_read_num):
 
 def watch_one_video(browser):
     # 获取未观看过的视频
-    random_num = get_random_num(0, 23, VIDEO_HISTORY)
+    random_num = get_random_num(0, 19, VIDEO_HISTORY)
     VIDEO_HISTORY.add(random_num)
     print("视频历史：{}".format(VIDEO_HISTORY))
     # 看视频
